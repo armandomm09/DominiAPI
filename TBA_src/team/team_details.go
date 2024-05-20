@@ -1,7 +1,8 @@
 package team
 
 import (
-	"apiv1/tba_source"
+	"apiv1/SB_src"
+	"apiv1/TBA_src"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -16,7 +17,7 @@ func AddTeamRegisters(api huma.API) {
 		Method:        http.MethodGet,
 		Path:          "/team/{number}/event/{eventKey}",
 		Summary:       "Shows the team's matches of the given event",
-		Tags:          []string{"FRC"},
+		Tags:          []string{"Team Event info"},
 		DefaultStatus: http.StatusCreated,
 	}, func(ctx context.Context, input *struct {
 		TeamNumber string `path:"number" maxLength:"5" example:"5887"`
@@ -25,7 +26,7 @@ func AddTeamRegisters(api huma.API) {
 
 		url := fmt.Sprintf("https://www.thebluealliance.com/api/v3/team/frc%s/event/%v/matches", input.TeamNumber, input.EventKey)
 
-		body, err := tba_source.AccessTBA(url)
+		body, err := TBA_src.AccessTBA(url)
 		if err != nil {
 			return nil, fmt.Errorf(err.Error())
 		}
@@ -88,11 +89,71 @@ func AddTeamRegisters(api huma.API) {
 	})
 
 	huma.Register(api, huma.Operation{
+		OperationID:   "get-team-EPA",
+		Method:        http.MethodGet,
+		Path:          "/team/{number}/year/{year}",
+		Summary:       "Get the EPA of a team",
+		Tags:          []string{"Team Year info"},
+		DefaultStatus: http.StatusCreated,
+	}, func(ctx context.Context, input *struct {
+		Number string `path:"number" maxLength:"5" example:"5887"`
+		Year   string `path:"year" maxLength:"4" example:"2024"`
+	}) (*OPRsSender, error) {
+
+		url := fmt.Sprintf("https://api.statbotics.io/v3/team_year/%s/%s", input.Number, input.Year)
+
+		body, err := SB_src.AccessSB(url)
+		if err != nil {
+			fmt.Println(string(err.Error()))
+			return nil, fmt.Errorf(err.Error())
+		}
+		var epas EPAGetter
+		if err := json.Unmarshal([]byte(body), &epas); err != nil {
+			return nil, fmt.Errorf(err.Error())
+		}
+
+		output := OPRsSender{}
+		output.Body.EPA = epas.Epa.Unitless
+
+		return &output, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID:   "get-teams-events",
+		Method:        http.MethodGet,
+		Path:          "/team/{number}/year/{year}",
+		Summary:       "Get the list of events of a team given the year",
+		Tags:          []string{"Team Year info"},
+		DefaultStatus: http.StatusCreated,
+	}, func(ctx context.Context, input *struct {
+		Number string `path:"number" maxLength:"5" example:"5887"`
+		Year   string `path:"year" maxLength:"4" example:"2024"`
+	}) (*OPRsSender, error) {
+
+		url := fmt.Sprintf("https://api.statbotics.io/v3/team_year/%s/%s", input.Number, input.Year)
+
+		body, err := SB_src.AccessSB(url)
+		if err != nil {
+			fmt.Println(string(err.Error()))
+			return nil, fmt.Errorf(err.Error())
+		}
+		var epas EPAGetter
+		if err := json.Unmarshal([]byte(body), &epas); err != nil {
+			return nil, fmt.Errorf(err.Error())
+		}
+
+		output := OPRsSender{}
+		output.Body.EPA = epas.Epa.Unitless
+
+		return &output, nil
+	})
+
+	huma.Register(api, huma.Operation{
 		OperationID:   "get-team-nickname",
 		Method:        http.MethodGet,
 		Path:          "/team/{number}",
 		Summary:       "Get the nickname of a eam",
-		Tags:          []string{"FRC"},
+		Tags:          []string{"Team Simple info"},
 		DefaultStatus: http.StatusCreated,
 	}, func(ctx context.Context, input *struct {
 		Number string `path:"number" maxLength:"5" example:"5887"`
@@ -100,7 +161,7 @@ func AddTeamRegisters(api huma.API) {
 
 		url := fmt.Sprintf("https://www.thebluealliance.com/api/v3/team/frc%s", input.Number)
 
-		body, err := tba_source.AccessTBA(url)
+		body, err := TBA_src.AccessTBA(url)
 		if err != nil {
 			return nil, fmt.Errorf(err.Error())
 		}
@@ -119,7 +180,7 @@ func AddTeamRegisters(api huma.API) {
 		Method:        http.MethodGet,
 		Path:          "/team/{teamNumber}/event{eventKey}",
 		Summary:       "Get the general stats of a team by event",
-		Tags:          []string{"FRC"},
+		Tags:          []string{"Team Event info"},
 		DefaultStatus: http.StatusCreated,
 	}, func(ctx context.Context, input *struct {
 		TeamNumber string `path:"teamNumber" maxLength:"5" example:"5887"`
@@ -128,7 +189,7 @@ func AddTeamRegisters(api huma.API) {
 
 		url := fmt.Sprintf("https://www.thebluealliance.com/api/v3/team/frc%s/event/%v/status", input.TeamNumber, input.EventKey)
 
-		body, err := tba_source.AccessTBA(url)
+		body, err := TBA_src.AccessTBA(url)
 		if err != nil {
 			return nil, fmt.Errorf(err.Error())
 		}

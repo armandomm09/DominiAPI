@@ -1,4 +1,4 @@
-package tba_source
+package TBA_src
 
 import (
 	"fmt"

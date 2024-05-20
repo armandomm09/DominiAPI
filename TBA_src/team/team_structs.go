@@ -1,5 +1,9 @@
 package team
 
+type Options struct {
+	port int `help:"Port to listen on" short:"p" default:"8888"`
+}
+
 type TeamNicknameResponse struct {
 	Body struct {
 		Nickname string `json:"nickname"`
@@ -71,5 +75,22 @@ type MatchReciever struct {
 type MatchDataListReciever struct {
 	Body struct {
 		Matches []MatchReciever `json:"matches"`
+	}
+}
+
+// STATBOTICS EPA GETTER
+type EPAGetter struct {
+	Team string `json:"team"`
+	Epa  struct {
+		Unitless float64 `json:"unitless"`
+	} `json:"epa"`
+}
+
+type OPRsSender struct {
+	Body struct {
+		EPA  float64 `json:"epa"`
+		OPR  float64 `json:"opr"`
+		DPR  float64 `json:"dpr"`
+		CCWM float64 `json:"ccwm"`
 	}
 }

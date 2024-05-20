@@ -21,7 +21,7 @@ func AddTeamRegisters(api huma.API) {
 	}, func(ctx context.Context, input *struct {
 		TeamNumber string `path:"number" maxLength:"5" example:"5887"`
 		EventKey   string `path:"eventKey" maxLength:"8" example:"2024mxpu"`
-	}) (*MatchDataList, error) {
+	}) (*MatchDataListSender, error) {
 
 		url := fmt.Sprintf("https://www.thebluealliance.com/api/v3/team/frc%s/event/%v/matches", input.TeamNumber, input.EventKey)
 
@@ -34,12 +34,57 @@ func AddTeamRegisters(api huma.API) {
 			fmt.Println(string(err.Error()))
 			return nil, fmt.Errorf(err.Error())
 		}
+		matchesData := MatchDataListReciever{}
+		matchesData.Body.Matches = matches
 
-		matchesList := MatchDataList{}
+		matchesSender := MatchDataListSender{}
 
-		matchesList.Body.Matches = matches
+		for _, match := range matchesData.Body.Matches {
+			matchSender := MatchSender{}
 
-		return &matchesList, nil
+			isRedAlliance := true
+			matchSender.AllianceFinalScore = match.Alliances.Red.Score
+			matchSender.OpponentFinalScore = match.Alliances.Blue.Score
+			for _, teamKey := range match.Alliances.Blue.TeamKeys {
+				matchSender.BlueTeamNumbers = append(matchSender.BlueTeamNumbers, teamKey[3:])
+				if teamKey == "frc"+input.TeamNumber {
+					isRedAlliance = false
+					matchSender.AllianceFinalScore = match.Alliances.Blue.Score
+					matchSender.OpponentFinalScore = match.Alliances.Red.Score
+
+				}
+			}
+			matchSender.IsRedAlliance = isRedAlliance
+
+			for _, teamKey := range match.Alliances.Red.TeamKeys {
+				matchSender.RedTeamNumbers = append(matchSender.RedTeamNumbers, teamKey[3:])
+
+			}
+
+			if (match.WinningAlliance == "red" && isRedAlliance) || (match.WinningAlliance == "false" && !isRedAlliance) {
+				matchSender.Won = true
+			} else {
+				matchSender.Won = false
+			}
+
+			switch match.CompLevel {
+			case "qm":
+				matchSender.CompetitionLevel = "Qualification"
+			case "sf":
+				matchSender.CompetitionLevel = "Semifinal"
+			case "f":
+				matchSender.CompetitionLevel = "Final"
+			}
+
+			matchSender.MatchKey = match.Key
+			matchSender.MatchNumber = match.MatchNumber
+			matchSender.MatchTitle = matchSender.CompetitionLevel + " " + fmt.Sprintf("%d", matchSender.MatchNumber)
+			matchSender.ActualTime = match.ActualTime
+			matchSender.PredictedTime = match.PredictedTime
+			matchesSender.Body.Matches = append(matchesSender.Body.Matches, matchSender)
+		}
+
+		return &matchesSender, nil
 	})
 
 	huma.Register(api, huma.Operation{

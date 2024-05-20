@@ -20,23 +20,24 @@ type AvgTeamsEvent struct {
 
 //MATCH SENDER *********************************************************************
 
-type MatchDataList struct {
+type MatchDataListSender struct {
 	Body struct {
-		Matches []MatchReciever `json:"matches"`
+		Matches []MatchSender `json:matches`
 	}
 }
 
 type MatchSender struct {
 	Won                bool     `json:"won"`
 	ActualTime         int64    `json:"actualTime"`
+	PredictedTime      int64    `json:"predictedTime"`
 	IsRedAlliance      bool     `json:"isRedAlliance"`
 	BlueTeamNumbers    []string `json:"blueTeamNumbers"`
 	RedTeamNumbers     []string `json:"RedTeamNumbers"`
-	AllianceFinalScore int64    `json:"AllianceFinalScore"`
-	OpponentFinalScore int64    `json:"OpponentFinalScore"`
+	AllianceFinalScore int      `json:"AllianceFinalScore"`
+	OpponentFinalScore int      `json:"OpponentFinalScore"`
 	CompetitionLevel   string   `json:"CompetitionLevel"`
 	MatchKey           string   `json:"matchKey"`
-	MatchNumber        int64    `json:"matchNumber"`
+	MatchNumber        int      `json:"matchNumber"`
 	MatchTitle         string   `json:"matchTitle"`
 }
 
@@ -65,4 +66,10 @@ type MatchReciever struct {
 	SetNumber       int    `json:"set_number"`
 	Time            int64  `json:"time"`
 	WinningAlliance string `json:"winning_alliance"`
+}
+
+type MatchDataListReciever struct {
+	Body struct {
+		Matches []MatchReciever `json:"matches"`
+	}
 }
